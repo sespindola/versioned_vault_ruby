@@ -4,6 +4,24 @@ module Vault
   describe Logical do
     subject { vault_test_client.logical }
 
+    before(:context) do
+      next unless versioned_kv_by_default?
+
+      vault_test_client.sys.unmount("secret")
+      vault_test_client.sys.mount(
+        "secret", "kv", "v1 KV", options: {version: "1"}
+      )
+    end
+
+    after(:context) do
+      next unless versioned_kv_by_default?
+
+      vault_test_client.sys.unmount("secret")
+      vault_test_client.sys.mount(
+        "secret", "kv", "v2 KV", options: {version: "2"}
+      )
+    end
+
     describe "#list" do
       it "returns the empty array when no items exist" do
         expect(subject.list("secret/that/never/existed")).to eq([])

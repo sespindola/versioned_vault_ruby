@@ -2,13 +2,30 @@ require "spec_helper"
 
 module Vault
   describe Client do
-
     def redirected_client
       Vault::Client.new(address: RSpec::RedirectServer.address, token: RSpec::VaultServer.token)
     end
 
     before do
       RSpec::RedirectServer.start
+    end
+
+    before(:context) do
+      next unless versioned_kv_by_default?
+
+      vault_test_client.sys.unmount("secret")
+      vault_test_client.sys.mount(
+        "secret", "kv", "v1 KV", options: {version: "1"}
+      )
+    end
+
+    after(:context) do
+      next unless versioned_kv_by_default?
+
+      vault_test_client.sys.unmount("secret")
+      vault_test_client.sys.mount(
+        "secret", "kv", "v2 KV", options: {version: "2"}
+      )
     end
 
     describe "#request" do

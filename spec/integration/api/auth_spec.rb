@@ -244,7 +244,7 @@ module Vault
         )
         expect do
           subject.auth.aws_iam('a_rolename', credentials_provider, 'mismatched_iam_header', 'https://sts.cn-north-1.amazonaws.com.cn') 
-        end.to raise_error(Vault::HTTPClientError, /expected iam_header_canary but got mismatched_iam_header/)
+        end.to raise_error(Vault::HTTPClientError, /expected "?iam_header_canary"? but got "?mismatched_iam_header"?/)
       end
 
       it "authenticates and saves the token on the client" do
@@ -261,6 +261,8 @@ module Vault
 
     describe "#gcp", vault: ">= 0.8.1" do
       before(:context) do
+        skip "gcp auth requires real resources and keys"
+
         vault_test_client.sys.enable_auth("gcp", "gcp", nil)
         vault_test_client.post("/v1/auth/gcp/config", JSON.fast_generate("service_account" => "rspec_service_account"))
         vault_test_client.post("/v1/auth/gcp/role/rspec_wrong_role", JSON.fast_generate("name" => "rspec_role", "project_id" => "wrong_project_id", "bound_service_accounts" => "\*", "type" => "iam"))
